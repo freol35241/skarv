@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=65.5.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "splice"
+version = "0.1.0"
+description = "A single process, in-memory message queue written in python."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+  {name = "PLACEHOLDER: Author Name", email = "author@example.com"}
+]
+dependencies = [
+  "eclipse-zenoh >=1.0,<2.0"
+]
