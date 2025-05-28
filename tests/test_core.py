@@ -1,5 +1,6 @@
 import splice
 
+import pytest
 from unittest.mock import MagicMock
 
 
@@ -67,5 +68,13 @@ def test_put_subscribe_and_get():
 
     assert len(call_args_list) == 1
 
+def test_recursive_loop():
+
+    @splice.subscribe("ping")
+    def callback(sample: splice.Sample):
+        splice.put("ping", 42)
+
+    with pytest.raises(RecursionError):
+        splice.put("ping", 42)
 
 

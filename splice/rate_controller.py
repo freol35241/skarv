@@ -1,9 +1,11 @@
 import asyncio
 import threading
 from typing import Awaitable
+from functools import partial
 
 
 _background_loop = None
+
 
 def schedule_async_hook(coro: Awaitable):
     global _background_loop
@@ -22,7 +24,7 @@ def schedule_async_hook(coro: Awaitable):
     return asyncio.run_coroutine_threadsafe(coro, _background_loop)
 
 
-def rate_limit(at_most_every=None, at_least_every=None):
+def rate_control(at_most_every=None, at_least_every=None):
 
     def decorator(callback):
         queue = asyncio.Queue()
@@ -33,30 +35,29 @@ def rate_limit(at_most_every=None, at_least_every=None):
             nonlocal last_emit, last_call
             while True:
                 try:
-                    print("waiting on queue...")
-                    args_kwargs = await asyncio.wait_for(queue.get(), timeout=at_least_every or 3600)
-                    print("Got item!")
+                    args_kwargs = await asyncio.wait_for(
+                        queue.get(), timeout=at_least_every or 3600
+                    )
                     now = asyncio.get_event_loop().time()
                     dt = now - last_emit
-                    print("dt = ", dt)
-                    if dt < at_most_every:
-                        print("Sleeping...")
+                    if at_most_every is not None and dt < at_most_every:
                         await asyncio.sleep(at_most_every - dt)
                     last_emit = asyncio.get_event_loop().time()
-                    last_value = args_kwargs
-                    print("Calling callback!")
-                    callback(*args_kwargs[0], **args_kwargs[1])
-                    print("Callback called sucessfully!")
+                    last_call = args_kwargs
+                    callback(*(args_kwargs[0]), **(args_kwargs[1]))
                 except asyncio.TimeoutError:
-                    if last_value is not None:
-                        callback(*last_call[0], **last_call[1])
+                    if last_call:
+                        callback(*(last_call[0]), **(last_call[1]))
                         last_emit = asyncio.get_event_loop().time()
 
-        schedule_async_hook(throttle_task()).add_done_callback(print)
+        schedule_async_hook(throttle_task()).add_done_callback(
+            lambda fut: print(fut.exception())
+        )
 
         def wrapper(*args, **kwargs):
-            print("Putting to queue!")
-            queue.put_nowait((args, kwargs))
+            _background_loop.call_soon_threadsafe(
+                partial(queue.put_nowait, (args, kwargs))
+            )
 
         return wrapper
 
