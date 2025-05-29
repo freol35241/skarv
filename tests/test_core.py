@@ -14,7 +14,7 @@ def test_put_get():
     assert res[0].value == 42
 
     for ix in range(10):
-        splice.put(f"anything/{ix}", 42+ ix)
+        splice.put(f"anything/{ix}", 42 + ix)
 
     res = splice.get("anything")
     assert len(res) == 1
@@ -49,6 +49,7 @@ def test_put_subscribe():
 
     mock_ss.assert_called_once()
 
+
 def test_put_subscribe_and_get():
 
     call_args_list = []
@@ -59,7 +60,6 @@ def test_put_subscribe_and_get():
 
         assert splice.get("another/thing")
 
-
     splice.put("another/thing", 43)
 
     assert len(call_args_list) == 0
@@ -67,6 +67,7 @@ def test_put_subscribe_and_get():
     splice.put("anything", 42)
 
     assert len(call_args_list) == 1
+
 
 def test_recursive_loop():
 
@@ -76,5 +77,3 @@ def test_recursive_loop():
 
     with pytest.raises(RecursionError):
         splice.put("ping", 42)
-
-

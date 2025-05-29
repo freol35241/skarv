@@ -3,6 +3,7 @@ import splice
 
 import pytest
 
+
 def test_maximum_rate_control():
 
     count = 0
@@ -15,7 +16,7 @@ def test_maximum_rate_control():
     start = time.time()
 
     # Call function 100 times during 1 second
-    while (time.time() - start < 1):
+    while time.time() - start < 1:
         callback()
         time.sleep(0.01)
 
