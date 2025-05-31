@@ -1,4 +1,6 @@
+import time
 import splice
+import threading
 
 import pytest
 from unittest.mock import MagicMock
@@ -77,3 +79,16 @@ def test_recursive_loop():
 
     with pytest.raises(RecursionError):
         splice.put("ping", 42)
+
+
+def test_running_subscriber_in_separate_thread():
+
+    main_thread_id = threading.current_thread().native_id
+
+    @splice.subscribe("pong", run_in_threadpool=True)
+    def callback(sample: splice.Sample):
+        assert threading.current_thread().native_id != main_thread_id
+
+    splice.put("pong", 42)
+
+    time.sleep(0.1)
