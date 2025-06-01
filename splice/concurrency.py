@@ -1,10 +1,8 @@
-import time
 import atexit
 import logging
 import asyncio
 import threading
-from functools import wraps, partial
-from typing import Awaitable, Callable, Tuple, Any
+from typing import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor, Future
 
 logger = logging.getLogger(__name__)
@@ -31,7 +29,7 @@ def schedule_coroutine(coro: Awaitable) -> asyncio.Future:
 
 
 _executor = ThreadPoolExecutor()
-atexit.register(_executor.shutdown)
+atexit.register(_executor.shutdown, wait=True, cancel_futures=True)
 
 
 def run_in_executor(func: Callable, *args, **kwargs):

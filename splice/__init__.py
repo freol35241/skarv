@@ -1,10 +1,8 @@
 import logging
-from dataclasses import dataclass
-from collections import defaultdict, deque
 from threading import Lock
-from typing import Dict, Callable, Deque, Any, Set, List
-
-from functools import partial, cache
+from dataclasses import dataclass
+from functools import cache
+from typing import Dict, Callable, Any, Set, List
 
 from zenoh import KeyExpr
 
@@ -32,7 +30,7 @@ class Middleware:
     operator: Callable[[Any], Any]
 
 
-_vault: Dict[KeyExpr, Deque[Any]] = defaultdict(partial(deque, maxlen=1))
+_vault: Dict[KeyExpr, Any] = dict()
 _vault_lock = Lock()
 
 _subscribers: Set[Subscriber] = set()
@@ -54,34 +52,22 @@ def _find_matching_middlewares(key: str) -> List[Middleware]:
 
 
 def put(key: str, value: Any):
-    logger.debug("Putting on %s with %s", key, value)
     ke: KeyExpr = KeyExpr.autocanonize(key)
-    logger.debug("Canonized key expression: %s", ke)
 
     # Pass through middlewares
     for middleware in _find_matching_middlewares(key):
-        logger.debug("Applying middleware registered on %s", middleware.key_expr)
-        logger.debug("  Input: %s", value)
         value = middleware.operator(value)
-        logger.debug("  Output: %s", value)
 
         if value is None:
-            logger.debug("Got None value, breaking early.")
             return
 
     # Add final value to vault
     with _vault_lock:
-        _vault[ke].append(value)
+        _vault[ke] = value
 
     # Trigger subscribers
     sample = Sample(ke, value)
     for subscriber in _find_matching_subscribers(key):
-        logger.debug(
-            "Calling %s, subscribed on %s,  with %s",
-            subscriber.callback,
-            subscriber.key_expr,
-            sample,
-        )
         if subscriber.run_in_threadpool:
             run_in_executor(subscriber.callback, sample)
         else:
@@ -112,8 +98,8 @@ def get(key: str):
 
     with _vault_lock:
         samples = [
-            Sample(rep_ke, values[-1])
-            for rep_ke, values in _vault.items()
+            Sample(rep_ke, value)
+            for rep_ke, value in _vault.items()
             if req_ke.intersects(rep_ke)
         ]
 
