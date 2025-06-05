@@ -1,5 +1,5 @@
 import time
-from splice.utilities import call_every
+from skarv.utilities import call_every
 
 
 def test_call_every():

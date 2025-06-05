@@ -6,8 +6,6 @@ from typing import Dict, Callable, Any, Set, List
 
 from zenoh import KeyExpr
 
-from .concurrency import run_in_executor
-
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +19,6 @@ class Sample:
 class Subscriber:
     key_expr: KeyExpr
     callback: Callable[[Any], None]
-    run_in_threadpool: bool
 
 
 @dataclass(frozen=True)
@@ -68,13 +65,10 @@ def put(key: str, value: Any):
     # Trigger subscribers
     sample = Sample(ke, value)
     for subscriber in _find_matching_subscribers(key):
-        if subscriber.run_in_threadpool:
-            run_in_executor(subscriber.callback, sample)
-        else:
-            subscriber.callback(sample)
+        subscriber.callback(sample)
 
 
-def subscribe(*keys: str, run_in_threadpool: bool = False):
+def subscribe(*keys: str):
     logger.debug("Subscribing to: %s", keys)
 
     # Adding a new subscriber means we need to clear the cache
@@ -85,14 +79,14 @@ def subscribe(*keys: str, run_in_threadpool: bool = False):
         for key in keys:
             ke = KeyExpr.autocanonize(key)
             logger.debug("Adding internal Subscriber for %s", ke)
-            _subscribers.add(Subscriber(ke, callback, run_in_threadpool))
+            _subscribers.add(Subscriber(ke, callback))
 
         return callback
 
     return decorator
 
 
-def get(key: str):
+def get(key: str) -> List[Sample]:
     logger.debug("Getting for %s", key)
     req_ke = KeyExpr.autocanonize(key)
 

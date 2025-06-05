@@ -24,7 +24,7 @@ jobs:
 
       - name: Linting package
         run: |
-          black --check splice
+          black --check skarv
           black --check tests
 
   testing:

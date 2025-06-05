@@ -1,9 +1,7 @@
-import atexit
 import logging
 import asyncio
 import threading
-from typing import Awaitable, Callable
-from concurrent.futures import ThreadPoolExecutor, Future
+from typing import Awaitable
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +24,3 @@ def schedule_coroutine(coro: Awaitable) -> asyncio.Future:
 
     logger.debug("Scheduling coroutine...")
     return asyncio.run_coroutine_threadsafe(coro, _background_loop)
-
-
-_executor = ThreadPoolExecutor()
-atexit.register(_executor.shutdown, wait=True, cancel_futures=True)
-
-
-def run_in_executor(func: Callable, *args, **kwargs):
-
-    def _done_callback(fut: Future):
-        try:
-            fut.result()
-        except Exception:
-            logger.exception("Exception raised in task run in executor")
-
-    _executor.submit(func, *args, **kwargs).add_done_callback(_done_callback)

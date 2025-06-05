@@ -1,15 +1,10 @@
-# splice
+# skarv
 
-![](./logo.png)
+> **skarv** is a Swedish noun that refers to the point where two things are joined together. Translations to English includes joint, splice, connection and similar words. Interestingly, it is also the swedish word for cormorant (the bird).
 
 ## What?
 
-A single process, in-memory message "broker" written in python. Main features are:
-* Very simple API
-* Fast
-* Uncomplicated
-* Fan-out / Fan-in
-* Back-pressure is built in
+A simple, synchronous, thread-safe, single process, in-memory message "broker" written in python. 
 
 ## Why?
 
@@ -17,10 +12,31 @@ Because I wanted the most simplistic API (subjectively) I could possibly think o
 
 ## How ?
 
-By re-using the concept of `Key Expression`s from `Zenoh` and utilizing in-memory storage for a very simplistic implementation of a message "broker" that supports the following operations:
+By re-using the concept of [`Key Expression`](https://github.com/eclipse-zenoh/roadmap/blob/main/rfcs/ALL/Key%20Expressions.md)s from [`Zenoh`](https://zenoh.io/) and utilizing in-memory storage for a very simplistic implementation of a message "broker" that supports the following operations:
 * Putting data to the broker
 * Subscribing to data from the broker
-* Getting data from the broker
+* Getting the latest data from the broker
 
 ## Usage
 
+```python
+
+import skarv
+
+@skarv.subscribe("any/**")
+def _(sample: skarv.Sample):
+    print(sample.key_expr)
+    print(sample.value)
+
+skarv.put("any/thing", 42)
+
+samples = skarv.get("any/**")
+
+print(samples)
+```
+
+## Installation
+
+```
+pip install skarv
+```

@@ -3,7 +3,7 @@ import asyncio
 import logging
 import warnings
 from typing import Callable
-from .concurrency import schedule_coroutine, _executor
+from .concurrency import schedule_coroutine
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def call_every(
                     if is_coroutine:
                         await func()
                     else:
-                        await asyncio.get_event_loop().run_in_executor(_executor, func)
+                        await asyncio.get_event_loop().run_in_executor(None, func)
                 except Exception:  # pylint: disable=broad-except
                     logger.exception(f"call_every: Exception in {func}")
 
