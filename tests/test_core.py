@@ -79,3 +79,13 @@ def test_recursive_loop():
 
     with pytest.raises(RecursionError):
         skarv.put("ping", 42)
+
+
+def test_middleware():
+    mock = MagicMock()
+
+    skarv.register_middleware("**", mock)
+
+    skarv.put("any/thing", 42)
+
+    mock.assert_called_once_with(42)
