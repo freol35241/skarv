@@ -17,6 +17,7 @@ class Sample:
         key_expr (KeyExpr): The key expression associated with the sample.
         value (Any): The value of the sample.
     """
+
     key_expr: KeyExpr
     value: Any
 
@@ -29,6 +30,7 @@ class Subscriber:
         key_expr (KeyExpr): The key expression to subscribe to.
         callback (Callable[[Any], None]): The callback function to invoke when a matching sample is published.
     """
+
     key_expr: KeyExpr
     callback: Callable[[Any], None]
 
@@ -41,6 +43,7 @@ class Middleware:
         key_expr (KeyExpr): The key expression the middleware applies to.
         operator (Callable[[Any], Any]): The operator function to process the value.
     """
+
     key_expr: KeyExpr
     operator: Callable[[Any], Any]
 

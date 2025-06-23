@@ -21,6 +21,7 @@ def call_every(
     Returns:
         Callable: A decorator that schedules the function to be called periodically.
     """
+
     def timed_task_decorator(func: Callable) -> Callable:
 
         is_coroutine = asyncio.iscoroutinefunction(func)
