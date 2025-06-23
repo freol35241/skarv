@@ -19,6 +19,8 @@ By re-using the concept of [`Key Expression`](https://github.com/eclipse-zenoh/r
 
 ## Usage
 
+Docs are available at https://freol35241.github.io/skarv
+
 ```python
 
 import skarv
@@ -40,3 +42,7 @@ print(samples)
 ```
 pip install skarv
 ```
+
+## License
+
+Apache 2.0 - see [LICENSE](LICENSE) file for details.
