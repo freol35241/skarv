@@ -12,6 +12,15 @@ def call_every(
     seconds: float,
     wait_first: bool = False,
 ):
+    """Decorator to repeatedly call a function every specified number of seconds.
+
+    Args:
+        seconds (float): The interval in seconds between calls.
+        wait_first (bool, optional): If True, wait for the interval before the first call. Defaults to False.
+
+    Returns:
+        Callable: A decorator that schedules the function to be called periodically.
+    """
     def timed_task_decorator(func: Callable) -> Callable:
 
         is_coroutine = asyncio.iscoroutinefunction(func)

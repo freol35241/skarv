@@ -11,18 +11,36 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Sample:
+    """A data sample consisting of a key expression and its associated value.
+
+    Attributes:
+        key_expr (KeyExpr): The key expression associated with the sample.
+        value (Any): The value of the sample.
+    """
     key_expr: KeyExpr
     value: Any
 
 
 @dataclass(frozen=True)
 class Subscriber:
+    """A subscriber that listens to updates for a specific key expression.
+
+    Attributes:
+        key_expr (KeyExpr): The key expression to subscribe to.
+        callback (Callable[[Any], None]): The callback function to invoke when a matching sample is published.
+    """
     key_expr: KeyExpr
     callback: Callable[[Any], None]
 
 
 @dataclass(frozen=True)
 class Middleware:
+    """A middleware operator that processes values for a specific key expression.
+
+    Attributes:
+        key_expr (KeyExpr): The key expression the middleware applies to.
+        operator (Callable[[Any], Any]): The operator function to process the value.
+    """
     key_expr: KeyExpr
     operator: Callable[[Any], Any]
 
@@ -49,6 +67,12 @@ def _find_matching_middlewares(key: str) -> List[Middleware]:
 
 
 def put(key: str, value: Any):
+    """Store a value for a given key, passing it through any registered middlewares and notifying subscribers.
+
+    Args:
+        key (str): The key to associate with the value.
+        value (Any): The value to store.
+    """
     ke: KeyExpr = KeyExpr.autocanonize(key)
 
     # Pass through middlewares
@@ -69,6 +93,14 @@ def put(key: str, value: Any):
 
 
 def subscribe(*keys: str):
+    """Decorator to subscribe a callback to one or more keys.
+
+    Args:
+        *keys (str): One or more keys to subscribe to.
+
+    Returns:
+        Callable: A decorator that registers the callback as a subscriber.
+    """
     logger.debug("Subscribing to: %s", keys)
 
     # Adding a new subscriber means we need to clear the cache
@@ -87,6 +119,14 @@ def subscribe(*keys: str):
 
 
 def get(key: str) -> List[Sample]:
+    """Retrieve all samples whose keys intersect with the given key.
+
+    Args:
+        key (str): The key to search for.
+
+    Returns:
+        List[Sample]: A list of matching samples.
+    """
     logger.debug("Getting for %s", key)
     req_ke = KeyExpr.autocanonize(key)
 
@@ -101,6 +141,12 @@ def get(key: str) -> List[Sample]:
 
 
 def register_middleware(key: str, operator: Callable[[Any], Any]):
+    """Register a middleware operator for a given key.
+
+    Args:
+        key (str): The key to associate with the middleware.
+        operator (Callable[[Any], Any]): The operator function to process values.
+    """
     logger.debug("Registering middleware on %s", key)
     ke = KeyExpr.autocanonize(key)
     _middlewares.add(Middleware(ke, operator))
