@@ -9,7 +9,14 @@ Numeric = Union[int, float]
 
 
 def throttle(at_most_every: float) -> Callable[[Any], Any | None]:
+    """Create a throttling middleware that allows values through at most once every specified interval.
 
+    Args:
+        at_most_every (float): Minimum interval in seconds between allowed values.
+
+    Returns:
+        Callable[[Any], Any | None]: Middleware function that returns the value or None if throttled.
+    """
     lock = Lock()
     last_call_time = 0.0
 
@@ -31,7 +38,14 @@ def throttle(at_most_every: float) -> Callable[[Any], Any | None]:
 
 
 def average(no_of_samples: int) -> Callable[[Numeric], Numeric]:
+    """Create a middleware that computes the moving average over a window of samples.
 
+    Args:
+        no_of_samples (int): Number of samples to average over.
+
+    Returns:
+        Callable[[Numeric], Numeric]: Middleware function that returns the moving average.
+    """
     lock = Lock()
     window = deque(maxlen=no_of_samples)
 
@@ -54,7 +68,14 @@ def _get_weights(no_of_samples: int) -> Sequence[float]:
 
 
 def weighted_average(no_of_samples: int) -> Callable[[Numeric], Numeric]:
+    """Create a middleware that computes a weighted moving average over a window of samples.
 
+    Args:
+        no_of_samples (int): Number of samples to use for the weighted average.
+
+    Returns:
+        Callable[[Numeric], Numeric]: Middleware function that returns the weighted moving average.
+    """
     lock = Lock()
     window = deque(maxlen=no_of_samples)
 
@@ -71,7 +92,11 @@ def weighted_average(no_of_samples: int) -> Callable[[Numeric], Numeric]:
 
 
 def differentiate() -> Callable[[Numeric], Numeric | None]:
+    """Create a middleware that computes the numerical derivative of the input values.
 
+    Returns:
+        Callable[[Numeric], Numeric | None]: Middleware function that returns the derivative or None for the first value.
+    """
     lock = Lock()
     last_value = None
     last_time = None
@@ -99,7 +124,14 @@ def differentiate() -> Callable[[Numeric], Numeric | None]:
 
 
 def batch(size: int) -> Callable[[Any], Sequence[Any] | None]:
+    """Create a middleware that batches input values and outputs them as a sequence when the batch size is reached.
 
+    Args:
+        size (int): The number of values to collect before emitting a batch.
+
+    Returns:
+        Callable[[Any], Sequence[Any] | None]: Middleware function that returns a batch or None if not enough values have been collected.
+    """
     lock = Lock()
     batch = []
 
