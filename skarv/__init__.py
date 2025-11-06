@@ -2,7 +2,7 @@ import logging
 from threading import Lock
 from dataclasses import dataclass
 from functools import cache
-from typing import Dict, Callable, Any, Set, List
+from typing import Dict, Callable, Any, Set, List, Union
 
 from zenoh import KeyExpr
 
@@ -170,14 +170,18 @@ def trigger(*keys: str):
     return decorator
 
 
-def get(key: str) -> List[Sample]:
-    """Retrieve all samples whose keys intersect with the given key.
+def get(key: str) -> Union[Sample, List[Sample], None]:
+    """Retrieve sample(s) whose keys intersect with the given key.
+
+    For key expressions without wildcards, returns a single Sample or None.
+    For key expressions with wildcards, returns a list of matching samples.
 
     Args:
         key (str): The key to search for.
 
     Returns:
-        List[Sample]: A list of matching samples.
+        Union[Sample, List[Sample], None]: For non-wildcard keys, returns a single Sample or None if not found.
+                                            For wildcard keys, returns a list of matching samples.
     """
     logger.debug("Getting for %s", key)
     req_ke = KeyExpr.autocanonize(key)
@@ -189,7 +193,12 @@ def get(key: str) -> List[Sample]:
             if req_ke.intersects(rep_ke)
         ]
 
-    return samples
+    # Return single sample for non-wildcard keys, list for wildcard keys
+    has_wildcards = "*" in key or "$" in key
+    if has_wildcards:
+        return samples
+    else:
+        return samples[0] if samples else None
 
 
 def register_middleware(key: str, operator: Callable[[Any], Any]):

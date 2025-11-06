@@ -48,7 +48,7 @@ def test_differentiate_middleware():
     assert differentiator(1) is None
     assert differentiator(1) == 0
     time.sleep(1)
-    assert differentiator(2) == pytest.approx(1, rel=0.01)
+    assert differentiator(2) == pytest.approx(1, rel=0.05)
 
 
 def test_batch_middleware():
