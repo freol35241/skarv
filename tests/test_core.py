@@ -89,3 +89,59 @@ def test_middleware():
     skarv.put("any/thing", 42)
 
     mock.assert_called_once_with(42)
+
+
+def test_put_trigger():
+
+    mock = MagicMock()
+    mock_s = MagicMock()
+    mock_ss = MagicMock()
+
+    skarv.trigger("anything")(mock)
+    skarv.trigger("anything/*")(mock_s)
+    skarv.trigger("anything/**")(mock_ss)
+
+    skarv.put("anything", 42)
+
+    mock.assert_called_once()
+    assert len(mock.call_args.args) == 0
+    assert len(mock.call_args.kwargs) == 0
+
+    mock_s.assert_not_called()
+
+    mock_ss.assert_called_once()
+
+
+def test_trigger_no_sample():
+
+    call_count = [0]
+
+    @skarv.trigger("anything")
+    def callback():
+        call_count[0] += 1
+
+    skarv.put("anything", 42)
+
+    assert call_count[0] == 1
+
+    skarv.put("anything", 99)
+
+    assert call_count[0] == 2
+
+
+def test_trigger_and_subscribe():
+
+    trigger_mock = MagicMock()
+    subscribe_mock = MagicMock()
+
+    skarv.trigger("anything")(trigger_mock)
+    skarv.subscribe("anything")(subscribe_mock)
+
+    skarv.put("anything", 42)
+
+    trigger_mock.assert_called_once()
+    assert len(trigger_mock.call_args.args) == 0
+
+    subscribe_mock.assert_called_once()
+    assert len(subscribe_mock.call_args.args) == 1
+    assert isinstance(subscribe_mock.call_args.args[0], skarv.Sample)

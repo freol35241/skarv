@@ -25,12 +25,22 @@ This page documents the core functions and classes of the Skarv package.
         - key_expr
         - operator
 
+::: skarv.Trigger
+    handler: python
+    selection:
+      members:
+        - key_expr
+        - callback
+
 ## Functions
 
 ::: skarv.put
     handler: python
 
 ::: skarv.subscribe
+    handler: python
+
+::: skarv.trigger
     handler: python
 
 ::: skarv.get
