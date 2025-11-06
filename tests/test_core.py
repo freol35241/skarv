@@ -27,6 +27,10 @@ def test_put_get():
     res = skarv.get("anything/**")
     assert len(res) == 11
 
+    skarv.put("anything", 42)
+    res = skarv.get("anything")
+    assert len(res) == 1
+
 
 def test_put_subscribe():
 
