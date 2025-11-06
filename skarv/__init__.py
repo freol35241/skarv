@@ -48,11 +48,25 @@ class Middleware:
     operator: Callable[[Any], Any]
 
 
+@dataclass(frozen=True)
+class Trigger:
+    """A trigger that executes a callback when a matching key expression is published.
+
+    Attributes:
+        key_expr (KeyExpr): The key expression to trigger on.
+        callback (Callable[[], None]): The callback function to invoke when a matching sample is published.
+    """
+
+    key_expr: KeyExpr
+    callback: Callable[[], None]
+
+
 _vault: Dict[KeyExpr, Any] = dict()
 _vault_lock = Lock()
 
 _subscribers: Set[Subscriber] = set()
 _middlewares: Set[Middleware] = set()
+_triggers: Set[Trigger] = set()
 
 
 @cache
@@ -67,6 +81,11 @@ def _find_matching_middlewares(key: str) -> List[Middleware]:
     return [
         middleware for middleware in _middlewares if middleware.key_expr.intersects(key)
     ]
+
+
+@cache
+def _find_matching_triggers(key: str) -> List[Trigger]:
+    return [trigger for trigger in _triggers if trigger.key_expr.intersects(key)]
 
 
 def put(key: str, value: Any):
@@ -94,6 +113,10 @@ def put(key: str, value: Any):
     for subscriber in _find_matching_subscribers(key):
         subscriber.callback(sample)
 
+    # Trigger triggers
+    for trigger in _find_matching_triggers(key):
+        trigger.callback()
+
 
 def subscribe(*keys: str):
     """Decorator to subscribe a callback to one or more keys.
@@ -115,6 +138,32 @@ def subscribe(*keys: str):
             ke = KeyExpr.autocanonize(key)
             logger.debug("Adding internal Subscriber for %s", ke)
             _subscribers.add(Subscriber(ke, callback))
+
+        return callback
+
+    return decorator
+
+
+def trigger(*keys: str):
+    """Decorator to trigger a callback when one or more keys are published.
+
+    Args:
+        *keys (str): One or more keys to trigger on.
+
+    Returns:
+        Callable: A decorator that registers the callback as a trigger.
+    """
+    logger.debug("Adding trigger for: %s", keys)
+
+    # Adding a new trigger means we need to clear the cache
+    _find_matching_triggers.cache_clear()
+    logger.debug("Cleared trigger cache.")
+
+    def decorator(callback: Callable):
+        for key in keys:
+            ke = KeyExpr.autocanonize(key)
+            logger.debug("Adding internal Trigger for %s", ke)
+            _triggers.add(Trigger(ke, callback))
 
         return callback
 
@@ -160,6 +209,7 @@ __all__ = [
     "Sample",
     "put",
     "subscribe",
+    "trigger",
     "get",
     "register_middleware",
 ]
