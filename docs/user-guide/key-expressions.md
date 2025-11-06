@@ -136,7 +136,7 @@ skarv.put("user/123/error", "Invalid password")
 
 ## Retrieving Data with Patterns
 
-The `skarv.get()` function also supports pattern matching:
+The `skarv.get()` function supports both exact key lookups and pattern matching:
 
 ```python
 # Store some data
@@ -145,23 +145,38 @@ skarv.put("device/002/temperature", 24.1)
 skarv.put("device/001/humidity", 65.2)
 skarv.put("device/002/humidity", 68.1)
 
-# Retrieve all temperatures
+# Retrieve a single value (non-wildcard key)
+temp = skarv.get("device/001/temperature")
+print(temp)
+# Output: Sample(key_expr='device/001/temperature', value=23.5)
+
+# Non-existent keys return None
+missing = skarv.get("device/999/temperature")
+print(missing)
+# Output: None
+
+# Retrieve all temperatures (wildcard key)
 temperatures = skarv.get("device/*/temperature")
 print(temperatures)
 # Output: [Sample(key_expr='device/001/temperature', value=23.5),
 #          Sample(key_expr='device/002/temperature', value=24.1)]
 
-# Retrieve all data for device 001
-device_001_data = skarv.put("device/001/*")
+# Retrieve all data for device 001 (wildcard key)
+device_001_data = skarv.get("device/001/*")
 print(device_001_data)
 # Output: [Sample(key_expr='device/001/temperature', value=23.5),
 #          Sample(key_expr='device/001/humidity', value=65.2)]
 
-# Retrieve all sensor data
+# Retrieve all sensor data (wildcard key)
 all_sensors = skarv.get("**")
 print(all_sensors)
-# Output: All stored samples
+# Output: All stored samples as a list
 ```
+
+**Note**: `skarv.get()` returns different types based on the key:
+
+- **Non-wildcard keys** (e.g., `"device/001/temperature"`): Returns a single `Sample` or `None` if not found
+- **Wildcard keys** (e.g., `"device/*/temperature"` or `"**"`): Returns a `list` of `Sample` objects (empty list if no matches)
 
 ## Best Practices
 

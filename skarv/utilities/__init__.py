@@ -3,7 +3,9 @@ import asyncio
 import logging
 import warnings
 from typing import Callable
-from .concurrency import schedule_coroutine
+
+from ..concurrency import schedule_coroutine
+
 
 logger = logging.getLogger(__name__)
 

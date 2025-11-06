@@ -9,27 +9,43 @@ from unittest.mock import MagicMock
 def test_put_get():
     skarv.put("anything", 42)
 
+    # Non-wildcard key should return a single Sample
     res = skarv.get("anything")
-    assert isinstance(res, list)
-    assert len(res) == 1
-    assert res[0].key_expr == "anything"
-    assert res[0].value == 42
+    assert isinstance(res, skarv.Sample)
+    assert res.key_expr == "anything"
+    assert res.value == 42
 
     for ix in range(10):
         skarv.put(f"anything/{ix}", 42 + ix)
 
+    # Non-wildcard key should still return single Sample
     res = skarv.get("anything")
-    assert len(res) == 1
+    assert isinstance(res, skarv.Sample)
+    assert res.key_expr == "anything"
 
+    # Wildcard keys should return list
     res = skarv.get("anything/*")
+    assert isinstance(res, list)
     assert len(res) == 10
 
     res = skarv.get("anything/**")
+    assert isinstance(res, list)
     assert len(res) == 11
 
     skarv.put("anything", 42)
     res = skarv.get("anything")
-    assert len(res) == 1
+    assert isinstance(res, skarv.Sample)
+
+
+def test_get_nonexistent():
+    # Non-existent non-wildcard key should return None
+    res = skarv.get("nonexistent/key")
+    assert res is None
+
+    # Non-existent wildcard key should return empty list
+    res = skarv.get("nonexistent/*")
+    assert isinstance(res, list)
+    assert len(res) == 0
 
 
 def test_put_subscribe():

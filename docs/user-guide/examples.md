@@ -485,6 +485,53 @@ def start_high_frequency_system():
 start_high_frequency_system()
 ```
 
+## Zenoh Integration
+
+Skarv can be integrated with [Zenoh](https://zenoh.io/) to create distributed systems. The `mirror` utility simplifies syncing Zenoh data into Skarv:
+
+```python
+import skarv
+from skarv.utilities.zenoh import mirror
+import zenoh
+
+# Open a Zenoh session
+session = zenoh.open(zenoh.Config())
+
+# Mirror Zenoh data to Skarv
+# This subscribes to the Zenoh key and automatically puts values into Skarv
+mirror(session, "sensor/temperature", "skarv/temperature")
+mirror(session, "sensor/humidity", "skarv/humidity")
+
+# Subscribe to the mirrored data in Skarv
+@skarv.subscribe("skarv/temperature")
+def handle_temperature(sample):
+    print(f"Temperature from Zenoh: {sample.value}°C")
+
+@skarv.subscribe("skarv/humidity")
+def handle_humidity(sample):
+    print(f"Humidity from Zenoh: {sample.value}%")
+
+# The mirror function also fetches initial values from Zenoh
+# so existing data is immediately available in Skarv
+temp = skarv.get("skarv/temperature")
+if temp:
+    print(f"Initial temperature: {temp.value}°C")
+
+# Keep the program running
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    session.close()
+```
+
+### Benefits of Zenoh + Skarv Integration
+
+- **Distributed Communication**: Use Zenoh for network communication between services
+- **Local Processing**: Use Skarv for local, fast, in-memory processing and routing
+- **Middleware**: Apply Skarv middleware to process Zenoh data
+- **Simplified API**: Use Skarv's simple API while leveraging Zenoh's distributed capabilities
+
 ## Next Steps
 
 - [API Reference](../api/core.md) - Complete API documentation

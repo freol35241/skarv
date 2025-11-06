@@ -61,7 +61,7 @@ skarv.put("device/001/status", "online")
 
 ## Retrieving Data
 
-You can retrieve stored data using key patterns:
+You can retrieve stored data using exact keys or patterns:
 
 ```python
 # Store some data
@@ -69,18 +69,25 @@ skarv.put("device/001/temperature", 23.5)
 skarv.put("device/002/temperature", 24.1)
 skarv.put("device/001/humidity", 65.2)
 
-# Retrieve all device temperatures
+# Retrieve a single value (non-wildcard)
+temp = skarv.get("device/001/temperature")
+print(temp)
+# Output: Sample(key_expr='device/001/temperature', value=23.5)
+
+# Retrieve all device temperatures (wildcard)
 temperatures = skarv.get("device/*/temperature")
 print(temperatures)
-# Output: [Sample(key_expr='device/001/temperature', value=23.5), 
+# Output: [Sample(key_expr='device/001/temperature', value=23.5),
 #          Sample(key_expr='device/002/temperature', value=24.1)]
 
-# Retrieve all data for device 001
+# Retrieve all data for device 001 (wildcard)
 device_001_data = skarv.get("device/001/*")
 print(device_001_data)
 # Output: [Sample(key_expr='device/001/temperature', value=23.5),
 #          Sample(key_expr='device/001/humidity', value=65.2)]
 ```
+
+**Note**: Non-wildcard keys return a single `Sample` (or `None`), while wildcard keys return a `list`.
 
 ## Using Middleware
 
